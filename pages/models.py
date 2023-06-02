@@ -5,7 +5,11 @@ import joblib
 
 import dash
 
+from explainers.confusion_matrix import graph
+
 dash.register_page(__name__, path='/models')
+
+import datasets
 
 from dash import html, dcc, callback, Output, Input, State
 import dash_bootstrap_components as dbc
@@ -13,15 +17,13 @@ import dash_bootstrap_components as dbc
 layout = html.Div(
     [
         dbc.Row([
-            dbc.Col(html.H1("Analisis del modelo"), width=10),
+            dbc.Col(html.H1("Analisis del modelo"), width=10, align="center"),
             dbc.Col(dcc.Upload(
                 id="upload-data",
                 children=html.Div(
                     ["Cargar"]
                 ),
                 style={
-                    "width": "100%",
-                    "height": "60px",
                     "lineHeight": "60px",
                     "borderWidth": "1px",
                     "borderStyle": "dashed",
@@ -35,7 +37,6 @@ layout = html.Div(
         dbc.Row(
             [
                 dbc.Col(html.Div(id='output-data-upload')),
-
             ]
         ),
     ]
@@ -67,5 +68,6 @@ def parse_contents(content, filename, date):
 
     return html.Div([
         html.H5(filename),
-        html.H6(datetime.datetime.fromtimestamp(date)),
+        html.H6(datetime.datetime.fromtimestamp(date).strftime("%m/%d/%Y, %H:%M:%S")),
+        graph
     ])
