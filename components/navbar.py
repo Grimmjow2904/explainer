@@ -2,15 +2,15 @@ import dash_bootstrap_components as dbc
 
 template = dbc.NavbarSimple(
     children=[
-        dbc.NavItem(dbc.NavLink("Modelos", href="/models")),
+        dbc.NavItem(dbc.NavLink("Modelos", href="/")),
         dbc.DropdownMenu(
             children=[
-                dbc.DropdownMenuItem("Opciones", header=True),
+                dbc.DropdownMenuItem("Datasets", href="/datasets"),
                 dbc.DropdownMenuItem("Exportar", href="#"),
             ],
             nav=True,
             in_navbar=True,
-            label="More",
+            label="Mas",
         ),
     ],
     brand="Analisis de Redes Neuronales",

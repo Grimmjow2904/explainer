@@ -17,7 +17,7 @@ scripts = [{
 app = dash.Dash(__name__,
                 suppress_callback_exceptions=True,
                 use_pages=True,
-                external_stylesheets=[dbc.themes.FLATLY], external_scripts=scripts)
+                external_stylesheets=[dbc.themes.LUX], external_scripts=scripts)
 
 app.layout = dbc.Container([
     dcc.Location(id="url", refresh=False),

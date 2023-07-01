@@ -1,19 +1,19 @@
 import shap
 import pandas as pd
-from sklearn.metrics import roc_curve, roc_auc_score, confusion_matrix
+from sklearn.metrics import roc_curve, roc_auc_score, confusion_matrix, auc
 from sklearn.model_selection import train_test_split
 from dash import html
 
 from sklearn.preprocessing import LabelEncoder
-from explainers.explainers_plots import plotly_confusion_matrix, plotly_roc_curve
+from components.explainers_plots import PlotlyConfusionMatrix, PlotlyRocCurve
 
 
 class BaseExplainer:
 
-    def __init__(self, model, dataset=None):
+    def __init__(self, model, dataset):
+        self.model = model
         self.dataset = dataset
         self.labels = dataset.columns
-        self.model = model
         self.X = dataset.iloc[:, :-1].values
         self.target = dataset.iloc[:, -1].values
         self.targets = pd.unique(self.target)
@@ -30,6 +30,9 @@ class BaseExplainer:
         return html.Iframe(srcDoc=shap_html, style={"width": "100%", "height": "500px", "margin": "20px",
                                                     "border": 0})
 
+    def test_split(self, dataset):
+        pass
+
 
 class ClassifierExplainer(BaseExplainer):
 
@@ -45,12 +48,13 @@ class ClassifierExplainer(BaseExplainer):
             y_score = y_scores[:, i]
 
             fpr, tpr, _ = roc_curve(y_true, y_score)
-            auc_score = roc_auc_score(y_true, y_score)
-
+            # TODO :revisar auc score
+            # auc_score = roc_auc_score(y_true, y_score)
+            auc_score = auc(fpr, tpr)
             temp = [f"{y_onehot.columns[i]} (AUC={auc_score:.2f})", fpr, tpr]
             data.append(temp)
 
-        return plotly_roc_curve(data)
+        return PlotlyRocCurve(data).graph()
 
     def confusion_matrix(self, binary=True, pos_label=None):
         # Make predictions on the test set
@@ -62,7 +66,7 @@ class ClassifierExplainer(BaseExplainer):
         # Change value to text for annotations.
         z_text = [[str(y) for y in x] for x in cm]
 
-        return plotly_confusion_matrix(cm, self.targets, z_text)
+        return PlotlyConfusionMatrix(cm, self.targets, z_text).graph()
 
 
 class RegressionExplainer(BaseExplainer):

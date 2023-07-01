@@ -1,4 +1,3 @@
-import os
 import dash
 import pandas as pd
 import dash_ag_grid as dag
@@ -8,16 +7,15 @@ dash.register_page(__name__, path='/datasets')
 
 from dash import html, callback, Output, Input
 from enviroment import settings
+from utils import datasets
 
-file_names = os.listdir(settings.data_path)
+datasetsData = datasets.getDatasets()
 
 data = {
-    "name": file_names,
-    "description": file_names,
-    "buy": ["Buy" for _ in range(len(file_names))],
-    "sell": ["Sell" for _ in range(len(file_names))],
+    "name": datasetsData[0],
+    "target": datasetsData[1],
+    "delete": ["Delete" for _ in range(len(datasetsData[0]))],
 }
-df = pd.DataFrame(data)
 
 columnDefs = [
     {
@@ -25,23 +23,12 @@ columnDefs = [
         "field": "name",
     },
     {
-        "headerName": "Descripcion",
+        "headerName": "Objetivo",
         "type": "rightAligned",
-        "field": "description",
-        "valueFormatter": {"function": """d3.format("($,.2f")(params.value)"""},
+        "field": "target",
     },
     {
-        "field": "Ver",
-        "cellRenderer": "DMC_Button",
-        "cellRendererParams": {
-            "variant": "outline",
-            "leftIcon": "ic:baseline-shopping-cart",
-            "color": "green",
-            "radius": "xl"
-        },
-    },
-    {
-        "field": "buy",
+        "field": "Eliminar",
         "cellRenderer": "Button",
         "cellRendererParams": {"className": "btn btn-success"},
     },
@@ -57,8 +44,8 @@ defaultColDef = {
 grid = dag.AgGrid(
     id="dataset_grid",
     columnDefs=columnDefs,
-    rowData=df.to_dict("records"),
-    columnSize="autoSize",
+    rowData=pd.DataFrame(data).to_dict("records"),
+    columnSize="sizeToFit",
     defaultColDef=defaultColDef,
     dashGridOptions={"rowSelection": "single"},
 )
@@ -71,16 +58,16 @@ def display_cell_clicked_on(cell):
     index = cell['rowIndex']
 
     df = pd.read_csv(
-        settings.data_path + "//" + file_names[index]
+        settings.data_path + "//" + datasetsData[0][index]
     )
 
-    columnDefs = [{"field": t} for t in df.columns]
+    columns = [{"field": t} for t in df.columns]
 
     if cell is None:
         return "Click on a cell"
     return dag.AgGrid(
         id="selection-single-grid",
-        columnDefs=columnDefs,
+        columnDefs=columns,
         rowData=df.to_dict("records"),
         columnSize="sizeToFit",
         defaultColDef={"resizable": True, "sortable": True, "filter": True, "minWidth": 125},
@@ -91,13 +78,13 @@ def display_cell_clicked_on(cell):
 
 layout = html.Div(children=[
     dbc.Row([
-        dbc.Col([html.H1(children="Datasets")], width=5),
+        dbc.Col([html.H1(children="Datasets")]),
         dbc.Col([
             dbc.Row([
                 dbc.Button("Agregar")
-            ])
-        ], align="center", width=1)
-    ], justify="rigth"),
+            ], align="end", className="w-25")
+        ])
+    ], className="justify-content-between p-3"),
     dbc.Row([
         dbc.Col([grid]),
         dbc.Col([
