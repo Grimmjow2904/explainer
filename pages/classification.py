@@ -4,40 +4,14 @@ import io
 import joblib
 import dash
 
-from explainers.explainers import ClassifierExplainer
-
 dash.register_page(__name__, path='/classification')
 
 from dash import html, dcc, callback, Output, Input, State
 import dash_bootstrap_components as dbc
 
-from components import dropdown
 from utils import datasets
-
-sidebar = dbc.Col([
-    dropdown.template("Dataset", datasets.getDatasets()[0]),
-    html.Label("Modelo"),
-    dbc.Row(dcc.Upload(
-        id="upload-data",
-        children=html.Div(
-            ["Cargar"]
-        ),
-        style={
-            "cursor": "pointer",
-            "lineHeight": "60px",
-            "borderWidth": "1px",
-            "borderStyle": "dashed",
-            "borderRadius": "5px",
-            "textAlign": "center",
-            "margin": "10px",
-        },
-        multiple=False,
-    )),
-    dbc.Row([
-        html.Button("Print", id="print", className="btn btn-primary w-50")
-    ], justify="center")
-
-])
+from explainers.explainers import ClassifierExplainer
+from components.sidebar import sidebar
 
 layout = html.Div(
     [
@@ -53,9 +27,10 @@ layout = html.Div(
                 ]),
                 dbc.Row(
                     [dcc.Loading([
-                        dcc.Tabs(id="tabs-example-graph", value='tab-1-example-graph', children=[
-                            dcc.Tab(label='Tab One', value='tab-1-example-graph', id="matriz"),
-                            dcc.Tab(label='Tab Two', value='tab-2-example-graph', id="ROC"),
+                        dcc.Tabs(id="tabs-example-graph", value='tab-metrics', children=[
+                            dcc.Tab(label='Metricas', value='tab-metrics', id="metrics"),
+                            dcc.Tab(label='SHAP', value='tab-SHAP', id="SHAP"),
+                            dcc.Tab(label='LIME', value='tab-LIME', id="LIME"),
                         ]),
                     ])
                     ]
@@ -66,17 +41,18 @@ layout = html.Div(
 )
 
 
-@callback(Output('matriz', 'children'),
-          Output('ROC', 'children'),
+@callback(Output('metrics', 'children'),
+          Output('SHAP', 'children'),
+          Output('LIME', 'children'),
           Input('upload-data', 'contents'),
           State('Dataset-dropdown', 'value'),
           State('upload-data', 'filename'),
           State('upload-data', 'last_modified'),
           prevent_initial_call=True)
-def update_output(content, dataset, filename, date):
+def model_load(content, dataset, filename, date):
     if content is not None:
-        matriz, roc = parse_contents(content, dataset, filename, date)
-        return matriz, roc
+        metrics, shap, lime = parse_contents(content, dataset, filename, date)
+        return metrics, shap, lime
 
 
 def parse_contents(content, dataset, filename, date):
@@ -91,7 +67,18 @@ def parse_contents(content, dataset, filename, date):
         print(e)
 
     explainer = ClassifierExplainer(model, datasets.getDataset(dataset))
-    # sharp = explainer.shap()
-    confux = explainer.confusion_matrix()
-    roc = explainer.roc_auc_curve()
-    return confux, roc
+    metrics = []
+    shap = explainer.shap()
+    confux = dbc.Row([
+        dbc.Col([explainer.confusion_matrix()]),
+        dbc.Col("test")
+    ])
+    metrics.append(confux)
+    roc = dbc.Row([
+        dbc.Col([explainer.roc_auc_curve()]),
+        dbc.Col("test")
+    ])
+    metrics.append(roc)
+    # plio.write_image(explainer.confusion_matrix(), "../assets/test.pdf", format='pdf')
+    # TODO: do lime
+    return metrics, shap, html.Div("Aqui va lime")

@@ -1,5 +1,6 @@
 import shap
 import pandas as pd
+from dash.dcc import Graph
 from sklearn.metrics import roc_curve, roc_auc_score, confusion_matrix, auc
 from sklearn.model_selection import train_test_split
 from dash import html
@@ -17,8 +18,7 @@ class BaseExplainer:
         self.X = dataset.iloc[:, :-1].values
         self.target = dataset.iloc[:, -1].values
         self.targets = pd.unique(self.target)
-        label_encoder = LabelEncoder()
-        self.Y = label_encoder.fit_transform(self.target)
+        self.Y = LabelEncoder().fit_transform(self.target)
         self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(self.X, self.Y, test_size=.3)
 
     # stratify = dataset['Survival']
@@ -27,8 +27,7 @@ class BaseExplainer:
         shap_values = explainer.shap_values(self.X_test)
         force_plot = shap.force_plot(explainer.expected_value[0], shap_values[0], self.X_test)
         shap_html = f"<head>{shap.getjs()}</head><body>{force_plot.html()}</body>"
-        return html.Iframe(srcDoc=shap_html, style={"width": "100%", "height": "500px", "margin": "20px",
-                                                    "border": 0})
+        return html.Iframe(srcDoc=shap_html, style={"width": "100%", "height": "500px", "border": 0})
 
     def test_split(self, dataset):
         pass
@@ -56,7 +55,7 @@ class ClassifierExplainer(BaseExplainer):
 
         return PlotlyRocCurve(data).graph()
 
-    def confusion_matrix(self, binary=True, pos_label=None):
+    def confusion_matrix(self, binary=True, pos_label=None) -> Graph:
         # Make predictions on the test set
         y_pred = self.model.predict(self.X_test)
 

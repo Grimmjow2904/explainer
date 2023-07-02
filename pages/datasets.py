@@ -56,9 +56,8 @@ grid = dag.AgGrid(
 )
 def display_cell_clicked_on(cell):
     index = cell['rowIndex']
-
     df = pd.read_csv(
-        settings.data_path + "//" + datasetsData[0][index]
+        settings.data_path + "//" + datasets.getDatasets()[0][index]
     )
 
     columns = [{"field": t} for t in df.columns]
@@ -73,7 +72,6 @@ def display_cell_clicked_on(cell):
         defaultColDef={"resizable": True, "sortable": True, "filter": True, "minWidth": 125},
         dashGridOptions={"rowSelection": "single"},
     )
-    # return f"clicked on cell value:  {cell['value']}, column:   {cell['colId']}, row index:   {cell['rowIndex']}"
 
 
 layout = html.Div(children=[

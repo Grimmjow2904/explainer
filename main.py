@@ -48,9 +48,7 @@ function nClicksToPDF(n_clicks){
       jsPDF: { unit: 'cm', format: 'a2', orientation: 'p' },
       pagebreak: { mode: ['avoid-all'] }
     };
-    console.log('ok')
-
-    html2pdf().from(document.getElementById("output-data-upload")).set(opt).save();
+    html2pdf().from(document.getElementsByClassName("tab-content")).set(opt).save();
   }
 }
     """,
